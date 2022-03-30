@@ -25,18 +25,7 @@ public class Main {
         staff.add(new Employee(1, "John", "Smith", "USA", 25));
         staff.add(new Employee(2, "Inav", "Petrov", "RU", 23));
 
-        ColumnPositionMappingStrategy<Employee> strategy = new ColumnPositionMappingStrategy<>();
-        strategy.setType((Employee.class));
-        strategy.setColumnMapping(columnMapping);
-        try (Writer writer = new FileWriter(fileName)) {
-            StatefulBeanToCsv<Employee> sbc = new StatefulBeanToCsvBuilder<Employee>(writer)
-                    .withMappingStrategy(strategy)
-                    .build();
-            sbc.write(staff);
-            writer.flush();
-        } catch (IOException | CsvRequiredFieldEmptyException | CsvDataTypeMismatchException e) {
-            e.printStackTrace();
-        }
+        createCSV(columnMapping, fileName, staff);
 
         List<Employee> list = parseCSV(columnMapping, fileName);
         String json = listToJson(list);
@@ -49,6 +38,21 @@ public class Main {
         String json2 = readString("data.json");
         List<Employee> list2 = jsonToList(json2);
         System.out.println(list2);
+    }
+
+    public static void createCSV(String[] columnMapping, String fileName, List<Employee> staff) {
+        ColumnPositionMappingStrategy<Employee> strategy = new ColumnPositionMappingStrategy<>();
+        strategy.setType((Employee.class));
+        strategy.setColumnMapping(columnMapping);
+        try (Writer writer = new FileWriter(fileName)) {
+            StatefulBeanToCsv<Employee> sbc = new StatefulBeanToCsvBuilder<Employee>(writer)
+                    .withMappingStrategy(strategy)
+                    .build();
+            sbc.write(staff);
+            writer.flush();
+        } catch (IOException | CsvRequiredFieldEmptyException | CsvDataTypeMismatchException e) {
+            e.printStackTrace();
+        }
     }
 
     public static List<Employee> parseXML(String fileName) throws ParserConfigurationException, IOException, SAXException {
