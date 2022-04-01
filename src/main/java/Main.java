@@ -55,6 +55,30 @@ public class Main {
         }
     }
 
+    public static List<Employee> parseCSV(String[] columnMapping, String fileName) {
+        List<Employee> staff = null;
+        try (CSVReader csvReader = new CSVReader(new FileReader(fileName))) {
+            ColumnPositionMappingStrategy<Employee> strategy1 = new ColumnPositionMappingStrategy<>();
+            strategy1.setType((Employee.class));
+            strategy1.setColumnMapping(columnMapping);
+            CsvToBean<Employee> csv = new CsvToBeanBuilder<Employee>(csvReader)
+                    .withMappingStrategy(strategy1)
+                    .build();
+            staff = csv.parse();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return staff;
+    }
+
+    public static String listToJson(List<Employee> list) {
+        Type listType = new TypeToken<List<Employee>>() {
+        }.getType();
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        return gson.toJson(list, listType);
+    }
+
     public static List<Employee> parseXML(String fileName) throws ParserConfigurationException, IOException, SAXException {
         List<Employee> list = new ArrayList<>();
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -97,17 +121,14 @@ public class Main {
         return list;
     }
 
-    public static List<Employee> jsonToList(String json) {
-        List<Employee> list = new ArrayList<>();
-        JsonParser parser = new JsonParser();
-        JsonArray jsonArray = (JsonArray) parser.parse(json);
-        GsonBuilder builder = new GsonBuilder();
-        Gson gson = builder.create();
-        for (Object j : jsonArray) {
-            Employee employee = gson.fromJson((JsonObject) j, Employee.class);
-            list.add(employee);
+    public static void writeString(String json, String fileName) {
+        try (FileWriter writer = new FileWriter(fileName)) {
+            writer.write(json);
+            writer.flush();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
         }
-        return list;
+        System.out.println(json);
     }
 
     public static String readString(String fileName) {
@@ -120,38 +141,16 @@ public class Main {
         return jsonString;
     }
 
-    public static void writeString(String json, String fileName) {
-        try (FileWriter writer = new FileWriter(fileName)) {
-            writer.write(json);
-            writer.flush();
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
-        System.out.println(json);
-    }
-
-    public static String listToJson(List<Employee> list) {
-        Type listType = new TypeToken<List<Employee>>() {
-        }.getType();
+    public static List<Employee> jsonToList(String json) {
+        List<Employee> list = new ArrayList<>();
+        JsonParser parser = new JsonParser();
+        JsonArray jsonArray = (JsonArray) parser.parse(json);
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
-        return gson.toJson(list, listType);
-    }
-
-    public static List<Employee> parseCSV(String[] columnMapping, String fileName) {
-        List<Employee> staff = null;
-        try (CSVReader csvReader = new CSVReader(new FileReader(fileName))) {
-            ColumnPositionMappingStrategy<Employee> strategy1 = new ColumnPositionMappingStrategy<>();
-            strategy1.setType((Employee.class));
-            strategy1.setColumnMapping(columnMapping);
-            CsvToBean<Employee> csv = new CsvToBeanBuilder<Employee>(csvReader)
-                    .withMappingStrategy(strategy1)
-                    .build();
-            staff = csv.parse();
-        } catch (IOException e) {
-            e.printStackTrace();
+        for (Object j : jsonArray) {
+            Employee employee = gson.fromJson((JsonObject) j, Employee.class);
+            list.add(employee);
         }
-        return staff;
+        return list;
     }
-
 }
